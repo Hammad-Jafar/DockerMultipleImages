@@ -1,0 +1,22 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t hammadjafar/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run hammadjafar/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t hammadjafar/multi-client ./client
+  - docker build -t hammadjafar/multi-nginx ./nginx
+  - docker build -t hammadjafar/multi-server ./server
+  - docker build -t hammadjafar/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push hammadjafar/multi-client
+  - docker push hammadjafar/multi-nginx
+  - docker push hammadjafar/multi-server
+  - docker push hammadjafar/multi-worker
